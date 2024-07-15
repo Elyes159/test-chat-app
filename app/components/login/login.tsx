@@ -13,22 +13,42 @@ export default function Login() {
     try {
       const result = await signInWithPopup(auth, twitterProvider);
       const user = result.user;
-      console.log("User Info: ", user);
   
       // Stocker user.uid dans localStorage
       localStorage.setItem("userUid", user.uid);
-      
-      console.log(user.uid)
   
-      // Vérifiez si l'utilisateur existe déjà dans Firestore
+      // Vérifier si l'utilisateur existe déjà dans Firestore
       const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
+      const userDocSnapshot = await getDoc(userDocRef);
   
-      if (userDoc.exists()) {
-        // Si l'utilisateur existe, rediriger vers le dashboard
+      if (userDocSnapshot.exists()) {
+        try {
+          const userData = userDocSnapshot.data(); // Données Firestore de l'utilisateur
+          
+          const response = await fetch("http://localhost:4000/user/stockInMongo", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: userData.email,
+              nom: userData.displayName,
+              idTwitter: user.providerData[0].displayName, // Si createdAt est un timestamp Firestore
+              // Autres données que vous voulez envoyer à votre API
+            }),
+          });
+  
+          if (response.ok) {
+            console.log("User data stored successfully in MongoDB");
+          } else {
+            console.error("Failed to store user data in MongoDB");
+          }
+        } catch (error) {
+          console.error("Error during API call: ", error.message);
+        }
         router.push("/");
       } else {
-        // Sinon, stocker l'utilisateur dans Firestore
+        // Si l'utilisateur n'existe pas encore dans Firestore, vous pouvez le créer ici
         await setDoc(userDocRef, {
           uid: user.uid,
           displayName: user.displayName,
@@ -36,20 +56,15 @@ export default function Login() {
           photoURL: user.photoURL,
           createdAt: new Date(),
         });
-  
-        // Rediriger vers la page de signup
+
+        // Ensuite, rediriger vers la page de signup
         router.push("/signup");
       }
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error during sign in: ", error.message);
-      } else {
-        console.error("Unexpected error", error);
-      }
+      console.error("Error during sign in: ", error.message);
     }
   };
   
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-gray-300 rounded-lg shadow-lg overflow-hidden relative w-full max-w-md">
