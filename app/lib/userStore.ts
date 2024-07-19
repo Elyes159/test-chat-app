@@ -3,12 +3,20 @@ import { create } from 'zustand';
 import { db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
+interface ChatState {
+  chatId: string | null;
+  user: { uid: string; displayName: string; email: string; photoURL: string } | null;
+  setChatId: (chatId: string) => void;
+  setUser: (user: { uid: string; displayName: string; email: string; photoURL: string }) => void;
+}
+
 interface User {
   uid: string;
   displayName: string;
   email: string;
   photoURL: string;
   createdAt: Date;
+  blocked: string[];
 }
 
 interface UserState {
@@ -17,12 +25,14 @@ interface UserState {
   isLoading: boolean;
   fetchUserInfo: (uid: string | null) => Promise<void>;
   fetchChatUserInfo: (uid: string) => Promise<void>;
+  
 }
 
 export const useUserStore = create<UserState>((set) => ({
   currentUser: null,
   chatUser: null,
   isLoading: true,
+  
   fetchUserInfo: async (uid) => {
     if (!uid) {
       set({ currentUser: null, isLoading: false });

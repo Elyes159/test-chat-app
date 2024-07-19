@@ -44,7 +44,11 @@ export default function Login() {
             console.error("Failed to store user data in MongoDB");
           }
         } catch (error) {
-          console.error("Error during API call: ", error.message);
+          if (error instanceof Error) {
+            console.error("Error during API call: ", error.message);
+          } else {
+            console.error("An unknown error occurred");
+          }
         }
         router.push("/");
       } else {
@@ -61,7 +65,11 @@ export default function Login() {
         router.push("/signup");
       }
     } catch (error) {
-      console.error("Error during sign in: ", error.message);
+      if (error instanceof Error) {
+        console.error("Error during sign in: ", error.message);
+      } else {
+        console.error("An unknown error occurred");
+      }
     }
   };
   
@@ -83,7 +91,7 @@ export default function Login() {
           </button>
 
           <div className="text-center mt-6">
-            <p className="text-gray-700">Don't have an account? <Link href="/signup" className="text-blue-500">Sign up</Link></p>
+            <p className="text-gray-700">Don&apos;t have an account? <Link href="/signup" className="text-blue-500">Sign up</Link></p>
           </div>
         </div>
       </div>

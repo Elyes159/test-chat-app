@@ -65,33 +65,38 @@ export default function Chat() {
       if (img.file) {
         imgUrl = await upload(img.file);
       }
-      await updateDoc(doc(db, "chats", chatId), {
-        messages: arrayUnion({
-          senderId: currentUser?.uid,
-          text,
-          createdAt: new Date(),
-          ...(imgUrl && { img: imgUrl })
-        })
-      });
+      
+      if (chatId) { // Ajoutez une vérification ici
+        await updateDoc(doc(db, "chats", chatId), {
+          messages: arrayUnion({
+            senderId: currentUser?.uid,
+            text,
+            createdAt: new Date(),
+            ...(imgUrl && { img: imgUrl })
+          })
+        });
+      }
 
-      const userIDs = [currentUser?.uid, user.uid];
+      const userIDs = [currentUser?.uid, user?.uid]; // Ajoutez une vérification ici
 
       userIDs.forEach(async (id) => {
-        const userChatsRef = doc(db, "userChats", id);
-        const userChatsSnapshot = await getDoc(userChatsRef);
+        if (id) { // Ajoutez une vérification ici
+          const userChatsRef = doc(db, "userChats", id);
+          const userChatsSnapshot = await getDoc(userChatsRef);
 
-        if (userChatsSnapshot.exists()) {
-          const userChatsData = userChatsSnapshot.data();
-          const chatIndex = userChatsData.chats.findIndex((c: { chatId: string }) => c.chatId === chatId);
+          if (userChatsSnapshot.exists()) {
+            const userChatsData = userChatsSnapshot.data();
+            const chatIndex = userChatsData.chats.findIndex((c: { chatId: string }) => c.chatId === chatId);
 
-          if (chatIndex !== -1) {
-            userChatsData.chats[chatIndex].lastMessage = text;
-            userChatsData.chats[chatIndex].isSeen = id === currentUser?.uid;
-            userChatsData.chats[chatIndex].updatedAt = Date.now();
+            if (chatIndex !== -1) {
+              userChatsData.chats[chatIndex].lastMessage = text;
+              userChatsData.chats[chatIndex].isSeen = id === currentUser?.uid;
+              userChatsData.chats[chatIndex].updatedAt = Date.now();
 
-            await updateDoc(userChatsRef, {
-              chats: userChatsData.chats,
-            });
+              await updateDoc(userChatsRef, {
+                chats: userChatsData.chats,
+              });
+            }
           }
         }
       });

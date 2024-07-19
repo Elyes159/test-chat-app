@@ -11,7 +11,11 @@ import { useChatStore } from "@/app/lib/chatStore";
 export default function ChatList() {
   const [addMode, setAddMode] = useState(false);
   const [chats, setChats] = useState<{
-    lastMessage: String; chatId: string; receiverId: string; updatedAt: number; user?: DocumentData 
+    lastMessage: string;
+    chatId: string;
+    receiverId: string;
+    updatedAt: number;
+    user: DocumentData; // Changez ceci pour rendre 'user' requis
   }[]>([]);
 
   const { currentUser } = useUserStore();
