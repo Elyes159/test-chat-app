@@ -3,8 +3,8 @@ import { useUserStore } from './userStore';
 
 interface ChatState {
   chatId: string | null;
-  chatUser: { uid: string } | null; // Typage approprié pour chatUser
-  user: { uid: string; blocked: string[] } | null; // Ajout de la propriété `user`
+  chatUser: { uid: string } | null;
+  user: { uid: string; blocked: string[] } | null;
   isCurrentUserBlocked: boolean;
   isReceiverBlocked: boolean;
   changeChat: (chatId: string, user: { uid: string; blocked: string[] }) => void;
@@ -14,20 +14,22 @@ interface ChatState {
 export const useChatStore = create<ChatState>((set) => ({
   chatId: null,
   chatUser: null,
-  user: null, // Initialisation de `user`
+  user: null,
   isCurrentUserBlocked: false,
   isReceiverBlocked: false,
 
   changeChat: (chatId, user) => {
     const currentUser = useUserStore.getState().currentUser;
 
-    if (!currentUser) {
-      // Vous pouvez gérer l'absence de currentUser ici, par exemple :
-      console.error("Current user is not defined");
+    if (!currentUser || !user) {
+      console.error("Current user or selected user is undefined");
       return;
     }
 
-    if (user.blocked.includes(currentUser.uid)) {
+    const currentUserBlocked = currentUser.blocked || [];
+    const userBlocked = user.blocked || [];
+
+    if (userBlocked.includes(currentUser.uid)) {
       set({
         chatId,
         chatUser: null,
@@ -35,7 +37,7 @@ export const useChatStore = create<ChatState>((set) => ({
         isCurrentUserBlocked: true,
         isReceiverBlocked: false,
       });
-    } else if (currentUser.blocked.includes(user.uid)) {
+    } else if (currentUserBlocked.includes(user.uid)) {
       set({
         chatId,
         chatUser: user,
